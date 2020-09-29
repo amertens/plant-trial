@@ -165,12 +165,16 @@ logit_plot <- function(fit, outcome, col=tableau10[1]){
 
 
 
-glm_mod_format<- function(Yvar, family="gaussian", control="Control", contrasts=c("Norms", "Moderate", "Extreme",  "Wolves= people", "Competing norms")){
+glm_mod_format<- function(d=d,Yvar, Wvars=Wvars, family="gaussian", control="control", contrasts=c("norms", "efficacy", "combined"), V){
+  
+  d$plant_mod=d[[V]]
+  
+  W <- d %>% subset(., select=Wvars)
   
   full_res <- NULL
   for(i in contrasts){
-    res1 <- washb_glm(Y=d[,Yvar], tr=d$tr, W=data.frame(wolf_mod=d$wolf_mod, Wvars), V="wolf_mod", id=1:nrow(d), contrast = c(control, i), pval=.2, print=F)     
-    res2 <- washb_glm(Y=d[,Yvar], tr=d$tr, W=data.frame(wolf_mod=d$wolf_mod, Wvars), id=1:nrow(d), contrast = c(control, i), pval=.2, print=F)     
+    res1 <- plant_mod_glm(Y=d[,Yvar], tr=d$tr, W=data.frame(plant_mod=d$plant_mod, W),contrast=c(control,i), V="plant_mod",  pval=.2)     
+    res2 <- plant_mod_glm(Y=d[,Yvar], tr=d$tr, W=data.frame(plant_mod=d$plant_mod, W),contrast=c(control,i),  pval=.2)     
     int.p <- lrtest(res2$glmModel, res1$glmModel)$`Pr(>Chisq)`[2]
     
     res <- res1$lincom
@@ -185,7 +189,9 @@ glm_mod_format<- function(Yvar, family="gaussian", control="Control", contrasts=
     res$control <- control
     res$treatment <- i
     res$outcome <- Yvar
-    res$int.p <- c(as.character(round(int.p,4)), "")
+    res$V <- V
+    #res$int.p <- c(as.character(round(int.p,4)), rep("",length(res$subgroup)))
+    res$int.p <- int.p
     full_res <- rbind(full_res, res)
   }
   
@@ -196,46 +202,156 @@ glm_mod_format<- function(Yvar, family="gaussian", control="Control", contrasts=
 
 
 
-#function to analyze likert outcome across trial arms with non-parametric Mann-Whitney-Wilcoxon Test
-wolf.wilcox <- function(Yname,  data=d){
-  
-  Yvar = subset(data, select = Yname)
-  data <- data.frame(y=as.numeric(Yvar[,1]), tr=data$tr)
-  data <- data %>% filter(!is.na(y))
-  data <- droplevels(data)
-  
-  #get test statistics
-  res <- NULL
-  for(i in c("Norms", "Moderate", "Extreme", "Wolves= people", "Competing norms")){
-    test <- wilcox.test(y ~ tr,
-                        data=data[data$tr %in% c("Control",i),])
-    res <- rbind(res, data.frame(Y=Yname, reference="Control", intervention=i, p=test$p.value))
-  }
-  for(i in c( "Moderate", "Extreme", "Wolves= people", "Competing norms")){
-    test <- wilcox.test(y ~ tr,
-                        data=data[data$tr %in% c("Norms",i),])
-    res <- rbind(res, data.frame(Y=Yname, reference="Norms", intervention=i, p=test$p.value))
-  }
-  for(i in c( "Extreme", "Wolves= people", "Competing norms")){
-    test <- wilcox.test(y ~ tr,
-                        data=data[data$tr %in% c("Moderate",i),])
-    res <- rbind(res, data.frame(Y=Yname, reference="Moderate", intervention=i, p=test$p.value))
-  }
-  for(i in c( "Wolves= people", "Competing norms")){
-    test <- wilcox.test(y ~ tr,
-                        data=data[data$tr %in% c("Extreme",i),])
-    res <- rbind(res, data.frame(Y=Yname, reference="Extreme", intervention=i, p=test$p.value))
-  }
-    test <- wilcox.test(y ~ tr,
-                        data=data[data$tr %in% c("Wolves= people","Competing norms"),])
-    res <- rbind(res, data.frame(Y=Yname, reference="Wolves= people", intervention="Competing norms", p=test$p.value))
-  
-  res$corrected.p<- res$p*5
-  res$corrected.p<-ifelse(res$corrected.p > 1, 1, res$corrected.p)
-  return(res)
-}              
 
 
+plant_mod_glm <- function(Y, tr, pair = NULL, W = NULL, forcedW = NULL, V = NULL, 
+                          contrast, family = "gaussian", pval = 0.2){
+  require(sandwich)
+  require(lmtest)
+  options(scipen = 20)
+  Subgroups = NULL
+  
+  id=1:length(Y)
+ 
+  if (!is.null(W)) {
+    W <- data.frame(W)
+    if (sum("tr" %in% colnames(W)) > 0) {
+      colnames(W)[which(colnames(W) == "tr")] <- "trW"
+    }
+  }
+  
+  if (!is.null(pair)) {
+    if (!is.null(W)) {
+      glmdat <- data.frame(id, Y, tr, pair, W)
+    }
+    else {
+      glmdat <- data.frame(id, Y, tr, pair)
+    }
+    glmdat$tr <- factor(glmdat$tr, levels = contrast[1:2])
+    glmdat$pair <- factor(glmdat$pair)
+  }else {
+    if (!is.null(W)) {
+      glmdat <- data.frame(id, Y, tr, W)
+    }
+    else {
+      glmdat <- data.frame(id, Y, tr)
+    }
+    glmdat$tr <- factor(glmdat$tr, levels = contrast[1:2])
+  }
+  
+  glmdat <- subset(glmdat, tr == contrast[1] | tr == contrast[2])
+  glmdat$tr <- factor(glmdat$tr, levels = contrast[1:2])
+  glmdat$pair=NULL
+  
+  n.orig <- dim(glmdat)[1]
+  rowdropped <- rep(1, nrow(glmdat))
+  rowdropped[which(complete.cases(glmdat))] <- 0
+  glmdat <- glmdat[complete.cases(glmdat), ]
+  n.sub <- dim(glmdat)[1]
+
+  
+  if (!is.null(W)) {
+    colnamesW <- names(W)
+  }
+  
+  if (!is.null(W)) {
+    if (!is.null(V)) {
+      forcedW = c(V, forcedW)
+    }
+    if (!is.null(forcedW)) {
+      screenW <- subset(glmdat, select = colnamesW)
+      toexclude <- names(screenW) %in% forcedW
+      if (length(which(toexclude == TRUE)) != length(forcedW)) 
+        stop("A forcedW variable name is not a variable within the W data frame.")
+      screenW = screenW[!toexclude]
+      if (ncol(screenW) == 0) {
+        screenW <- NULL
+      }
+  
+      
+    }
+    else {
+      screenW <- subset(glmdat, select = colnamesW)
+    }
+  }else {
+    screenW <- NULL
+  }
+  if (!is.null(screenW)) {
+    Wscreen = colnamesW
+  }else {
+    Wscreen = NULL
+  }
+  if (!is.null(pair)) {
+    if (!is.null(forcedW)) {
+      if (!is.null(Wscreen)) {
+        dmat <- subset(glmdat, select = c("Y", 
+                                          "tr", forcedW, Wscreen, "pair"))
+      }
+      else {
+        dmat <- subset(glmdat, select = c("Y", 
+                                          "tr", forcedW, "pair"))
+      }
+    }
+    else {
+      if (!is.null(Wscreen)) {
+        dmat <- subset(glmdat, select = c("Y", 
+                                          "tr", Wscreen, "pair"))
+      }
+      else {
+        dmat <- subset(glmdat, select = c("Y", 
+                                          "tr", "pair"))
+      }
+    }
+  }
+  else {
+    if (!is.null(forcedW)) {
+      if (!is.null(Wscreen)) {
+        dmat <- subset(glmdat, select = c("Y", 
+                                          "tr", forcedW, Wscreen))
+      }
+      else {
+        dmat <- subset(glmdat, select = c("Y", 
+                                          "tr", forcedW))
+      }
+    }
+    else {
+      if (!is.null(Wscreen)) {
+        dmat <- subset(glmdat, select = c("Y", 
+                                          "tr", Wscreen))
+      }
+      else {
+        dmat <- subset(glmdat, select = c("Y", 
+                                          "tr"))
+      }
+    }
+  }
+  if (family[1] == "binomial" | family[1] == "poisson" | 
+      family[1] == "gaussian") {
+   
+ 
+      if (!is.null(V)) {
+        colnames(dmat)[which(colnames(dmat) == V)] <- "V"
+          Subgroups <- unique(dmat$tr:factor(dmat$V))
+            suppressWarnings(fit <- glm(Y ~ tr * V + ., family = family, 
+                                    data = dmat))
+        vcovCL <- sandwichSE(dmat, fm = fit, cluster = glmdat$id)
+        rfit <- coeftest(fit, vcovCL)
+        dmat$V=factor(dmat$V)
+      }
+      else {
+        suppressWarnings(fit <- glm(Y ~ ., family = family, 
+                                    data = dmat))
+        vcovCL <- sandwichSE(dmat, fm = fit, cluster = glmdat$id)
+        rfit <- coeftest(fit, vcovCL)
+      }
+      modelfit <- washb_glmFormat(glmModel = fit, rfit = rfit, 
+                                  dmat = dmat, rowdropped = rowdropped, contrast = contrast, 
+                                  pair = pair, vcovCL = vcovCL, family = family, 
+                                  V = V, Subgroups = Subgroups,
+                                  print=F, verbose=F)
+      return(modelfit)
+    }
+}
 
 
   

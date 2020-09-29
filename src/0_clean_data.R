@@ -8,7 +8,7 @@ library(washb)
 library(here)
 
 #Read in the data
-d <- read.csv(here("data/FullSampleReducedVarsMASTER.csv"))
+d <- read.csv(here("data/AllSampleReducedVarsMASTER.csv"))
 
 #clean data
 d$condition[d$condition=="norm"] <- "norms"
@@ -20,10 +20,10 @@ table(d$condition, d$friendtimesused)
 
 d %>% group_by(condition) %>% summarize(sum(friendtimesused))
 
-table(d$sample)
+table(d$NIC_Random)
 
-d1 <- d %>% filter(sample==1)
-d2 <- d %>% filter(sample==2)
+d1 <- d %>% filter(NIC_Random==1)
+d2 <- d %>% filter(NIC_Random==2)
 table(d1$condition, d1$selftimesused)
 table(d1$condition, d1$friendtimesused)
 d1 %>% group_by(condition) %>% summarize(sum(friendtimesused))
@@ -37,19 +37,30 @@ d2 %>% group_by(condition) %>% summarize(sum(friendtimesused))
 #Subset to Y, A, and W variables and clean W variables
 colnames(d)
 d <- d %>% 
-  rename(id=ï..survey_ID,
+  rename(id=survey_ID,
+         sample=NIC_Random,
          tr=condition) %>%
   mutate(friendused=1*(friendtimesused>0),
          friendused=ifelse(is.na(friendtimesused),NA, friendused),
          friendtimesused=factor(friendtimesused, levels=c("0","1","2","3"))) %>%
   subset(., select=c(id, sample, tr, selftimesused, friendtimesused, friendused,
          SE_plant, RE_env_plant, RE_social_plant,
-         in_sanctioning_plant, dyn_plant, SE_encourage,       
+         IN_sanctioning_plant, dyn_plant, SE_encourage,       
          IN_praise_plant,     RE_social_encourage,
-         RE_env_encourage,    in_encourage,       
-         competent_encourage))
+         RE_env_encourage,    IN_encourage,       
+         competent_encourage,
+         rent_own, Gender, Race, Ethnicity, Age, Education, native_plant, convinceOther))
 
-Wvars=NULL
+#------------------------------
+#Clean covariates
+#------------------------------
+
+#prior engagement in planting of native plants, 
+#home ownership, gender, age, education, race, and ethnicity 
+table(d$Race, d$Ethnicity)
+summary(d$Age)
+
+Wvars=c("rent_own", "Gender", "Race", "Ethnicity", "Age", "Education", "native_plant", "convinceOther")
 Y <- c("selftimesused", "friendtimesused","friendused")
 
 

@@ -1,0 +1,141 @@
+---
+title: "Trial results"
+author: "Andrew Mertens"
+date: "Sept 28, 2020"
+output:
+  word_document: default
+  html_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+library(here)
+```
+
+
+```{r include=F}
+
+
+
+print_fun <- function(res, binomial=F){
+  Z<-qnorm(.025/5,lower.tail=FALSE)
+
+  if(binomial){
+
+    res$ci_lb = exp(res$est - 1.96*res$se)
+    res$ci_ub = exp(res$est + 1.96*res$se)
+    res$adjCI1 <- exp(res$est - Z*res$se)
+    res$adjCI2 <- exp(res$est + Z*res$se)
+    #res$reference=res$reflevel
+    
+    res <- res %>% subset(., select = c(intervention, reference, RR, ci_lb, ci_ub,  p, adjCI1, adjCI2, corrected.p))
+    res[,3:9] <- round(res[,3:9], 3)
+  }else{
+    
+    res$ci_lb = (res$est - 1.96*res$se)
+    res$ci_ub = (res$est + 1.96*res$se)
+    
+    #calculate corrected CI's
+    res$adjCI1 <- res$est - Z*res$se
+    res$adjCI2 <- res$est + Z*res$se
+
+
+
+    
+    #res$reference=res$reflevel
+    res$coef=res$est
+    
+    res <- res %>% subset(., select = c(intervention, reference, coef, ci_lb, ci_ub,  p, adjCI1, adjCI2, corrected.p))
+    res[,3:9] <- round(res[,3:9], 3)
+  }
+  return(res)
+}
+
+
+
+print_fun_polr <- function(res){
+  res <- res %>% rename(se=Std..Error, est=Value, tr=coef ) %>%
+    mutate(
+          ci_lb = exp(est - 1.96*se),
+          ci_ub = exp(est + 1.96*se),
+          RR = exp(est),
+          corrected.p = ifelse(corrected.p>1, 1, corrected.p)
+    ) %>%
+    subset(., select=c(tr, RR, se, ci_lb, ci_ub, p, corrected.p))
+
+
+    res[,3:7] <- round(res[,3:7], 3)
+ 
+  return(res[1:3,])
+}
+
+```
+
+## Unadjusted regressions results
+
+
+```{r, echo=F}
+  load(here("results/unadjusted_regression_results.rdata"))
+cat("Outcome variable: ",Y[1],":\n")
+print_fun(res_self_unadj, binomial=T)
+cat("Outcome variable: ",Y[2],":\n")
+print_fun_polr(res_friend_unadj)
+cat("Outcome variable: ",Y[3],":\n")
+print_fun(res_friend_bin_unadj)
+
+```
+
+## Unadjusted regressions results - subample 1
+
+```{r, echo=F}
+  load(here("results/unadjusted_regression_results_subsample.rdata"))
+cat("Outcome variable: ",Y[1],":\n")
+print_fun(res_self_unadj_samp1, binomial=T)
+cat("Outcome variable: ",Y[2],":\n")
+print_fun_polr(res_friend_unadj_samp1)
+cat("Outcome variable: ",Y[3],":\n")
+print_fun(res_friend_bin_unadj_samp1)
+
+```
+
+
+## Unadjusted regressions results - subample 2
+
+```{r, echo=F}
+cat("Outcome variable: ",Y[1],":\n")
+print_fun(res_self_unadj_samp2, binomial=T)
+cat("Outcome variable: ",Y[2],":\n")
+print_fun_polr(res_friend_unadj_samp2)
+cat("Outcome variable: ",Y[3],":\n")
+print_fun(res_friend_bin_unadj_samp2)
+
+```
+
+
+
+## Adjusted regressions results - subample 1
+
+```{r, echo=F}
+  load(here("results/adjusted_regression_results_subsample.rdata"))
+cat("Outcome variable: ",Y[1],":\n")
+print_fun(res_self_adj_samp1, binomial=T)
+cat("Outcome variable: ",Y[2],":\n")
+print_fun_polr(res_friend_adj_samp1)
+cat("Outcome variable: ",Y[3],":\n")
+print_fun(res_friend_bin_adj_samp1)
+
+```
+
+
+## Unadjusted moderation results
+
+```{r, echo=F}
+  load(here("results/unadjusted_moderation_analysis_results.rdata"))
+
+resfull_unadj$int.p <- round(resfull_unadj$int.p,2)
+print(resfull_unadj)
+
+```
+
+
