@@ -164,7 +164,6 @@ logit_plot <- function(fit, outcome, col=tableau10[1]){
 
 
 
-
 glm_mod_format<- function(d=d,Yvar, Wvars=Wvars, family="gaussian", control="control", contrasts=c("norms", "efficacy", "combined"), V){
   
   d$plant_mod=d[[V]]
@@ -173,25 +172,62 @@ glm_mod_format<- function(d=d,Yvar, Wvars=Wvars, family="gaussian", control="con
   
   full_res <- NULL
   for(i in contrasts){
-    res1 <- plant_mod_glm(Y=d[,Yvar], tr=d$tr, W=data.frame(plant_mod=d$plant_mod, W),contrast=c(control,i), V="plant_mod",  pval=.2)     
-    res2 <- plant_mod_glm(Y=d[,Yvar], tr=d$tr, W=data.frame(plant_mod=d$plant_mod, W),contrast=c(control,i),  pval=.2)     
-    int.p <- lrtest(res2$glmModel, res1$glmModel)$`Pr(>Chisq)`[2]
+    #print(i)
+    res1 <- plant_mod_glm(Y=d[,Yvar], tr=d$tr, W=data.frame(plant_mod=d$plant_mod, W), family=family, contrast=c(control,i), V="plant_mod",  pval=.2)     
+    res2 <- plant_mod_glm(Y=d[,Yvar], tr=d$tr, W=data.frame(plant_mod=d$plant_mod, W), family=family, contrast=c(control,i),  pval=.2)  
     
-    res <- res1$lincom
-    colnames(res)[1] <- "subgroup"
-    if(family=="binomial"){
-      res <- data.frame(subgroup = res$subgroup, 
-                        RR = exp(res$est), 
-                        RR.lb = exp(res$est - 1.96 * res$se.est), 
-                        RR.ub = exp(res$est + 1.96 * res$se.est), 
-                        P=res$P) 
+    if(family=="polr"){
+      int.p <- lrtest(res2$fit, res1$fit)$`Pr(>Chisq)`[2]
+      res <- res1$res
+      res <- data.frame(subgroup=rownames(res), res)
+      res <- res %>% 
+        rename(RR=estimate, se.est=std.error, RR.lb=conf.low, RR.ub=conf.high, P=p) %>%
+        subset(., select = c(subgroup, RR, RR.lb, RR.ub, se.est, P)) 
+      
+      res$control <- control
+      res$treatment <- i
+      res$outcome <- Yvar
+      res$V <- V
+      res$int.p <- int.p
+      
+    }else{
+      int.p <- lrtest(res2$glmModel, res1$glmModel)$`Pr(>Chisq)`[2]
+      
+      res <- res1$fit[2:4,]
+      res <- data.frame(subgroup=rownames(res), res)
+      rownames(res) <- NULL
+      
+      if(colnames(res)[2]=="OR"){
+        
+        res <- res %>% 
+          rename(RR=OR, RR.lb =X2.5., RR.ub =X97.5., se.est=Std..Error, Zvalue=z.value, P=Pr...z..) %>%
+          subset(., select = c(subgroup, RR, RR.lb, RR.ub, se.est, Zvalue, P))  
+      }else{
+        
+        res <- res %>% 
+          rename(est=Coef., se.est=Std..Error, Zvalue=z.value, P=Pr...z..) %>%
+          subset(., select = c(subgroup, est, se.est, Zvalue, P)) 
+      
+      
+      if(family=="binomial"){
+        res <- data.frame(subgroup = res$subgroup,
+                          RR = exp(res$est),
+                          RR.lb = exp(res$est - 1.96 * res$se.est),
+                          RR.ub = exp(res$est + 1.96 * res$se.est),
+                          est=res$est,
+                          se.est=res$se.est,
+                          P=res$P)
+        }
+      }
+      res$control <- control
+      res$treatment <- i
+      res$outcome <- Yvar
+      res$V <- V
+      #res$int.p <- c(as.character(round(int.p,4)), rep("",length(res$subgroup)))
+      res$int.p <- int.p
     }
-    res$control <- control
-    res$treatment <- i
-    res$outcome <- Yvar
-    res$V <- V
-    #res$int.p <- c(as.character(round(int.p,4)), rep("",length(res$subgroup)))
-    res$int.p <- int.p
+    
+    
     full_res <- rbind(full_res, res)
   }
   
@@ -201,7 +237,22 @@ glm_mod_format<- function(d=d,Yvar, Wvars=Wvars, family="gaussian", control="con
 
 
 
-
+# d$plant_mod=d[[V]]
+# 
+# W <- d %>% subset(., select=Wvars)
+# 
+# full_res <- NULL
+# i=contrasts[2]
+# Y=d[,Yvar]
+# tr=d$tr
+# W=data.frame(plant_mod=d$plant_mod, W)
+# contrast=c(control,i)
+# V="plant_mod"
+# pval=.2
+# 
+# pair = NULL
+# #forcedW = "plant_mod"
+# forcedW = NULL
 
 
 plant_mod_glm <- function(Y, tr, pair = NULL, W = NULL, forcedW = NULL, V = NULL, 
@@ -277,9 +328,15 @@ plant_mod_glm <- function(Y, tr, pair = NULL, W = NULL, forcedW = NULL, V = NULL
     screenW <- NULL
   }
   if (!is.null(screenW)) {
-    Wscreen = colnamesW
-  }else {
-    Wscreen = NULL
+      if(family == "polr"){
+        suppressWarnings(Wscreen <- logit_prescreen(Y = glmdat$Y, 
+                                                    Ws = screenW, pval = 0.2, print = F))      
+      }else{
+        suppressWarnings(Wscreen <- washb_prescreen(Y = glmdat$Y, 
+                                                    Ws = screenW, family = family, pval = 0.2, print = F))
+      }
+    }else { 
+      Wscreen = NULL
   }
   if (!is.null(pair)) {
     if (!is.null(forcedW)) {
@@ -302,8 +359,7 @@ plant_mod_glm <- function(Y, tr, pair = NULL, W = NULL, forcedW = NULL, V = NULL
                                           "tr", "pair"))
       }
     }
-  }
-  else {
+  }else{
     if (!is.null(forcedW)) {
       if (!is.null(Wscreen)) {
         dmat <- subset(glmdat, select = c("Y", 
@@ -325,8 +381,11 @@ plant_mod_glm <- function(Y, tr, pair = NULL, W = NULL, forcedW = NULL, V = NULL
       }
     }
   }
+  
+    
+  
   if (family[1] == "binomial" | family[1] == "poisson" | 
-      family[1] == "gaussian") {
+      family[1] == "gaussian"){
    
  
       if (!is.null(V)) {
@@ -336,7 +395,6 @@ plant_mod_glm <- function(Y, tr, pair = NULL, W = NULL, forcedW = NULL, V = NULL
                                     data = dmat))
         vcovCL <- sandwichSE(dmat, fm = fit, cluster = glmdat$id)
         rfit <- coeftest(fit, vcovCL)
-        dmat$V=factor(dmat$V)
       }
       else {
         suppressWarnings(fit <- glm(Y ~ ., family = family, 
@@ -350,6 +408,56 @@ plant_mod_glm <- function(Y, tr, pair = NULL, W = NULL, forcedW = NULL, V = NULL
                                   V = V, Subgroups = Subgroups,
                                   print=F, verbose=F)
       return(modelfit)
+      
+      
+    }else{
+      
+      if (!is.null(V)) {
+      colnames(dmat)[which(colnames(dmat) == V)] <- "V"
+      #Subgroups <- unique(dmat$tr:factor(dmat$V))
+      
+      if(ncol(dmat)>5){
+        vars <- colnames(dmat)[-c(1:3)]
+        form <- formula(paste0("Y ~ tr + V + tr:V + ", paste(vars, collapse=" + ")))
+        suppressWarnings(fit <- polr(form, data = dmat, Hess=T))
+        res <- tidy(fit, exponentiate = TRUE, conf.int = TRUE) %>% filter(coefficient_type=="coefficient") %>%
+          subset(., select = - c(coefficient_type))
+      }else{
+        form <- formula(paste0("Y ~ tr + V + tr:V"))
+        suppressWarnings(fit <- polr(form, data = dmat, Hess=T))
+        res <- tidy(fit, exponentiate = TRUE, conf.int = TRUE) %>% filter(coefficient_type=="coefficient") %>%
+          subset(., select = - c(coefficient_type))
+      }
+        coef=coef(summary(fit))
+        p <- pnorm(abs(coef[, "t value"]), lower.tail = FALSE) * 2
+        p <- data.frame(term=names(p), p=p)
+        
+        res <- left_join(res, p, by="term")
+        res <- res %>% filter(grepl("V",term)|grepl("tr",term))
+        
+      }else{
+        if(ncol(dmat)>4){
+          vars <- colnames(dmat)[-c(1:3)]
+          form <- formula(paste0("Y ~ tr + ", paste(vars, collapse=" + ")))
+          suppressWarnings(fit <- polr(form, data = dmat, Hess=T))
+          res <- tidy(fit, exponentiate = TRUE, conf.int = TRUE) %>% filter(coefficient_type=="coefficient") %>%
+            subset(., select = - c(coefficient_type))
+        }else{
+          form <- formula(paste0("Y ~ tr"))
+          suppressWarnings(fit <- polr(form, data = dmat, Hess=T))
+          res<-NULL
+          # res <- tidy(fit, exponentiate = TRUE, conf.int = TRUE) %>% filter(coefficient_type=="coefficient") %>%
+          #   subset(., select = - c(coefficient_type))
+        }
+        # coef=coef(summary(fit))
+        # p <- pnorm(abs(coef[, "t value"]), lower.tail = FALSE) * 2
+        # p <- data.frame(term=names(p), p=p)
+        # 
+        # res <- left_join(res, p, by="term")
+      }
+        
+        return(list(res=res, fit=fit))
+      
     }
 }
 

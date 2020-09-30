@@ -5,6 +5,9 @@ library(tidyverse)
 library(caret)
 library(washb)
 library(SmartEDA)
+library(here)
+library(multcomp)
+library(broom)
 source(here("plant_trial_functions.R"))
 
 
@@ -56,14 +59,30 @@ Vvars = c("SE_plant",
   "IN_encourage"	,
   "competent_encourage")
 
+i=Vvars[1]
+Yvar=Y[1]
+family="binomial"
+Yvar=Y[2]
+family="polr"
+V=i
+control="control"
+contrasts=c("norms", "efficacy", "combined")
+
 resfull <- NULL
 for(i in Vvars){
   res1<-glm_mod_format(d=d,Yvar=Y[1], Wvars=Wvars, family="binomial", V=i)
-  res2<-NULL
-  #res2<-glm_mod_format(d=d,Yvar=Y[2]) #must update for polr
-  res3<-glm_mod_format(d=d,Yvar=Y[3], Wvars=Wvars, family="binomial", V=i)
+  res1_sub1<-glm_mod_format(d=d,Yvar=Y[1], Wvars=Wvars, family="binomial", V=i,  control="norms", contrasts=c("efficacy", "combined"))
+  res1_sub2<-glm_mod_format(d=d,Yvar=Y[1], Wvars=Wvars, family="binomial", V=i,  control="efficacy", contrasts=c("combined"))
+
+  res2<-glm_mod_format(d=d,Yvar=Y[2], Wvars=Wvars, family="polr", V=i) #must update for polr
+  res2_sub1<-glm_mod_format(d=d,Yvar=Y[2], Wvars=Wvars, family="polr", V=i,  control="norms", contrasts=c("efficacy", "combined")) #must update for polr
+  res2_sub2<-glm_mod_format(d=d,Yvar=Y[2], Wvars=Wvars, family="polr", V=i,  control="efficacy", contrasts=c("combined")) #must update for polr
   
-  resfull <- bind_rows(resfull, res1, res2, res3)
+  res3<-glm_mod_format(d=d,Yvar=Y[3], Wvars=Wvars, family="binomial", V=i)
+  res3_sub1<-glm_mod_format(d=d,Yvar=Y[3], Wvars=Wvars, family="binomial", V=i,  control="norms", contrasts=c("efficacy", "combined"))
+  res3_sub2<-glm_mod_format(d=d,Yvar=Y[3], Wvars=Wvars, family="binomial", V=i,  control="efficacy", contrasts=c("combined"))
+  
+  resfull <- bind_rows(resfull, res1, res1_sub1, res1_sub2, res2, res2_sub1, res2_sub2,  res3, res3_sub1, res3_sub2)
 }
 
 
@@ -83,16 +102,23 @@ d$W=rep(1, nrow(d))
 resfull_unadj <- NULL
 for(i in Vvars){
   res1<-glm_mod_format(d=d,Yvar=Y[1], Wvars="W", family="binomial", V=i)
-  res2<-NULL
-  #res2<-glm_mod_format(d=d,Yvar=Y[2]) #must update for polr
-  res3<-glm_mod_format(d=d,Yvar=Y[3], Wvars="W",  family="binomial", V=i)
+  res1_sub1<-glm_mod_format(d=d,Yvar=Y[1], Wvars="W", family="binomial", V=i,  control="norms", contrasts=c("efficacy", "combined"))
+  res1_sub2<-glm_mod_format(d=d,Yvar=Y[1], Wvars="W", family="binomial", V=i,  control="efficacy", contrasts=c("combined"))
+
+  res2<-glm_mod_format(d=d,Yvar=Y[2], Wvars="W", family="polr", V=i) #must update for polr
+  res2_sub1<-glm_mod_format(d=d,Yvar=Y[2], Wvars="W", family="polr", V=i,  control="norms", contrasts=c("efficacy", "combined")) #must update for polr
+  res2_sub2<-glm_mod_format(d=d,Yvar=Y[2], Wvars="W", family="polr", V=i,  control="efficacy", contrasts=c("combined")) #must update for polr
   
-  resfull_unadj <- bind_rows(resfull_unadj, res1, res2, res3)
+  res3<-glm_mod_format(d=d,Yvar=Y[3], Wvars="W", family="binomial", V=i)
+  res3_sub1<-glm_mod_format(d=d,Yvar=Y[3], Wvars="W", family="binomial", V=i,  control="norms", contrasts=c("efficacy", "combined"))
+  res3_sub2<-glm_mod_format(d=d,Yvar=Y[3], Wvars="W", family="binomial", V=i,  control="efficacy", contrasts=c("combined"))
+  
+  resfull_unadj <- bind_rows(resfull_unadj, res1, res1_sub1, res1_sub2, res2, res2_sub1, res2_sub2,  res3, res3_sub1, res3_sub2)
 }
 
-resfull_unadj <- resfull_unadj %>% distinct( control, treatment, outcome, V, int.p)
+res_unadj <- resfull_unadj %>% distinct( control, treatment, outcome, V, int.p)
 
-save(Y, 
+save(Y, res_unadj,
      resfull_unadj, 
      file=here("results/unadjusted_moderation_analysis_results.rdata"))
 

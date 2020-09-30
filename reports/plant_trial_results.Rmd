@@ -128,14 +128,22 @@ print_fun(res_friend_bin_adj_samp1)
 ```
 
 
-## Unadjusted moderation results
+## Unadjusted moderation results - interaction p-values
 
 ```{r, echo=F}
   load(here("results/unadjusted_moderation_analysis_results.rdata"))
 
-resfull_unadj$int.p <- round(resfull_unadj$int.p,2)
-print(resfull_unadj)
+res_unadj$int.p <- round(res_unadj$int.p,2)
+print(res_unadj)
 
 ```
 
 
+
+## Unadjusted moderation results - full results
+
+```{r, echo=F}
+
+print(resfull_unadj, digits=2)
+
+```
