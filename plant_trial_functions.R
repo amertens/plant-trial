@@ -163,7 +163,6 @@ logit_plot <- function(fit, outcome, col=tableau10[1]){
 
 
 
-
 glm_mod_format<- function(d=d,Yvar, Wvars=Wvars, family="gaussian", control="control", contrasts=c("norms", "efficacy", "combined"), V){
   
   d$plant_mod=d[[V]]
@@ -179,9 +178,8 @@ glm_mod_format<- function(d=d,Yvar, Wvars=Wvars, family="gaussian", control="con
     if(family=="polr"){
       int.p <- lrtest(res2$fit, res1$fit)$`Pr(>Chisq)`[2]
       res <- res1$res
-      res <- data.frame(subgroup=rownames(res), res)
       res <- res %>% 
-        rename(RR=estimate, se.est=std.error, RR.lb=conf.low, RR.ub=conf.high, P=p) %>%
+        rename(subgroup=term,RR=estimate, se.est=std.error, RR.lb=conf.low, RR.ub=conf.high, P=p) %>%
         subset(., select = c(subgroup, RR, RR.lb, RR.ub, se.est, P)) 
       
       res$control <- control
@@ -236,24 +234,33 @@ glm_mod_format<- function(d=d,Yvar, Wvars=Wvars, family="gaussian", control="con
 }
 
 
-
-# d$plant_mod=d[[V]]
 # 
+# i=Vvars[1]
+# 
+# Yvar="friendtimesused"
+# Wvars="W"
+# d$W=rep(1, nrow(d))
+# family="polr"
+# V=i
+# control="norms"
+# contrasts=c("efficacy", "combined")
+# d$plant_mod=d[[i]]
 # W <- d %>% subset(., select=Wvars)
 # 
 # full_res <- NULL
-# i=contrasts[2]
+# i = contrasts[1]
+# 
 # Y=d[,Yvar]
 # tr=d$tr
 # W=data.frame(plant_mod=d$plant_mod, W)
 # contrast=c(control,i)
-# V="plant_mod"
-# pval=.2
+# 
 # 
 # pair = NULL
-# #forcedW = "plant_mod"
 # forcedW = NULL
-
+# V="plant_mod"
+# pval = 0.2
+# dfull<-dmat
 
 plant_mod_glm <- function(Y, tr, pair = NULL, W = NULL, forcedW = NULL, V = NULL, 
                           contrast, family = "gaussian", pval = 0.2){

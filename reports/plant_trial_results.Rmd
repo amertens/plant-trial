@@ -2,15 +2,22 @@
 title: "Trial results"
 author: "Andrew Mertens"
 date: "Sept 28, 2020"
-output:
-  word_document: default
-  html_document: default
+output: 
+  word_document:
+    reference_docx: plant_trial_report_format.docx
 ---
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 library(tidyverse)
 library(here)
+op = function(x, d=2) sprintf(paste0("%1.",d,"f"), x) 
+ library(pander)
+panderOptions('digits', 2)
+panderOptions('round', 2)
+panderOptions('keep.trailing.zeros', TRUE)
+panderOptions('graph.fontsize', 8)
+
 ```
 
 
@@ -82,7 +89,7 @@ print_fun(res_self_unadj, binomial=T)
 cat("Outcome variable: ",Y[2],":\n")
 print_fun_polr(res_friend_unadj)
 cat("Outcome variable: ",Y[3],":\n")
-print_fun(res_friend_bin_unadj)
+print_fun(res_friend_bin_unadj, binomial=T)
 
 ```
 
@@ -95,7 +102,7 @@ print_fun(res_self_unadj_samp1, binomial=T)
 cat("Outcome variable: ",Y[2],":\n")
 print_fun_polr(res_friend_unadj_samp1)
 cat("Outcome variable: ",Y[3],":\n")
-print_fun(res_friend_bin_unadj_samp1)
+print_fun(res_friend_bin_unadj_samp1, binomial=T)
 
 ```
 
@@ -108,7 +115,7 @@ print_fun(res_self_unadj_samp2, binomial=T)
 cat("Outcome variable: ",Y[2],":\n")
 print_fun_polr(res_friend_unadj_samp2)
 cat("Outcome variable: ",Y[3],":\n")
-print_fun(res_friend_bin_unadj_samp2)
+print_fun(res_friend_bin_unadj_samp2, binomial=T)
 
 ```
 
@@ -123,7 +130,7 @@ print_fun(res_self_adj_samp1, binomial=T)
 cat("Outcome variable: ",Y[2],":\n")
 print_fun_polr(res_friend_adj_samp1)
 cat("Outcome variable: ",Y[3],":\n")
-print_fun(res_friend_bin_adj_samp1)
+print_fun(res_friend_bin_adj_samp1, binomial=T)
 
 ```
 
@@ -134,7 +141,7 @@ print_fun(res_friend_bin_adj_samp1)
   load(here("results/unadjusted_moderation_analysis_results.rdata"))
 
 res_unadj$int.p <- round(res_unadj$int.p,2)
-print(res_unadj)
+pander(res_unadj)
 
 ```
 
@@ -143,7 +150,7 @@ print(res_unadj)
 ## Unadjusted moderation results - full results
 
 ```{r, echo=F}
-
-print(resfull_unadj, digits=2)
+resfull_unadj <- resfull_unadj %>% select(subgroup,RR,RR.lb,RR.ub,P, int.p,  control, treatment,outcome,V)
+pander(resfull_unadj, split.table = Inf)
 
 ```

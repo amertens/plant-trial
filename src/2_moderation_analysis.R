@@ -70,14 +70,17 @@ contrasts=c("norms", "efficacy", "combined")
 
 resfull <- NULL
 for(i in Vvars){
+  print(i)
+  res1 <- res1_sub1 <- res1_sub2 <- res2 <- res2_sub1 <- res2_sub2 <- res3 <- res3_sub1 <- res3_sub2 <- NULL
   res1<-glm_mod_format(d=d,Yvar=Y[1], Wvars=Wvars, family="binomial", V=i)
   res1_sub1<-glm_mod_format(d=d,Yvar=Y[1], Wvars=Wvars, family="binomial", V=i,  control="norms", contrasts=c("efficacy", "combined"))
   res1_sub2<-glm_mod_format(d=d,Yvar=Y[1], Wvars=Wvars, family="binomial", V=i,  control="efficacy", contrasts=c("combined"))
 
+  if(!(i %in% c("IN_praise_plant","IN_encourage"))){
   res2<-glm_mod_format(d=d,Yvar=Y[2], Wvars=Wvars, family="polr", V=i) #must update for polr
   res2_sub1<-glm_mod_format(d=d,Yvar=Y[2], Wvars=Wvars, family="polr", V=i,  control="norms", contrasts=c("efficacy", "combined")) #must update for polr
   res2_sub2<-glm_mod_format(d=d,Yvar=Y[2], Wvars=Wvars, family="polr", V=i,  control="efficacy", contrasts=c("combined")) #must update for polr
-  
+  }
   res3<-glm_mod_format(d=d,Yvar=Y[3], Wvars=Wvars, family="binomial", V=i)
   res3_sub1<-glm_mod_format(d=d,Yvar=Y[3], Wvars=Wvars, family="binomial", V=i,  control="norms", contrasts=c("efficacy", "combined"))
   res3_sub2<-glm_mod_format(d=d,Yvar=Y[3], Wvars=Wvars, family="binomial", V=i,  control="efficacy", contrasts=c("combined"))
@@ -100,15 +103,19 @@ d$W=rep(1, nrow(d))
 
 
 resfull_unadj <- NULL
+i=Vvars[1]
 for(i in Vvars){
+  print(i)
+  res1 <- res1_sub1 <- res1_sub2 <- res2 <- res2_sub1 <- res2_sub2 <- res3 <- res3_sub1 <- res3_sub2 <- NULL
   res1<-glm_mod_format(d=d,Yvar=Y[1], Wvars="W", family="binomial", V=i)
   res1_sub1<-glm_mod_format(d=d,Yvar=Y[1], Wvars="W", family="binomial", V=i,  control="norms", contrasts=c("efficacy", "combined"))
   res1_sub2<-glm_mod_format(d=d,Yvar=Y[1], Wvars="W", family="binomial", V=i,  control="efficacy", contrasts=c("combined"))
-
-  res2<-glm_mod_format(d=d,Yvar=Y[2], Wvars="W", family="polr", V=i) #must update for polr
-  res2_sub1<-glm_mod_format(d=d,Yvar=Y[2], Wvars="W", family="polr", V=i,  control="norms", contrasts=c("efficacy", "combined")) #must update for polr
-  res2_sub2<-glm_mod_format(d=d,Yvar=Y[2], Wvars="W", family="polr", V=i,  control="efficacy", contrasts=c("combined")) #must update for polr
-  
+ 
+  if(!(i %in% c("IN_praise_plant","IN_encourage"))){
+    res2<-glm_mod_format(d=d,Yvar=Y[2], Wvars="W", family="polr", V=i) #must update for polr
+    res2_sub1<-glm_mod_format(d=d,Yvar=Y[2], Wvars="W", family="polr", V=i,  control="norms", contrasts=c("efficacy", "combined")) #must update for polr
+    res2_sub2<-glm_mod_format(d=d,Yvar=Y[2], Wvars="W", family="polr", V=i,  control="efficacy", contrasts=c("combined")) #must update for polr
+  }
   res3<-glm_mod_format(d=d,Yvar=Y[3], Wvars="W", family="binomial", V=i)
   res3_sub1<-glm_mod_format(d=d,Yvar=Y[3], Wvars="W", family="binomial", V=i,  control="norms", contrasts=c("efficacy", "combined"))
   res3_sub2<-glm_mod_format(d=d,Yvar=Y[3], Wvars="W", family="binomial", V=i,  control="efficacy", contrasts=c("combined"))
