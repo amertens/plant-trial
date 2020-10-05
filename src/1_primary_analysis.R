@@ -35,9 +35,9 @@ res_friend_unadj_samp1 <- polr_format(Yvar=Y[2], Ws=NULL, df=df1)$res
 res_friend_bin_unadj_samp1 <- plant.glm(Yname=Y[3], Ws=NULL, data=df1, family="binomial")
 
 df2 <- d %>% filter(sample==2)
-res_self_unadj_samp2 <- plant.glm(Yname=Y[1], Ws=NULL, data=df1, family="binomial")
-res_friend_unadj_samp2 <- polr_format(Yvar=Y[2], Ws=NULL, df=df1)$res
-res_friend_bin_unadj_samp2 <- plant.glm(Yname=Y[3], Ws=NULL, data=df1, family="binomial")
+res_self_unadj_samp2 <- plant.glm(Yname=Y[1], Ws=NULL, data=df2, family="binomial")
+res_friend_unadj_samp2 <- polr_format(Yvar=Y[2], Ws=NULL, df=df2)$res
+res_friend_bin_unadj_samp2 <- plant.glm(Yname=Y[3], Ws=NULL, data=df2, family="binomial")
 
 save(Y, res_self_unadj_samp1, res_friend_unadj_samp1, res_friend_bin_unadj_samp1,
      res_self_unadj_samp2, res_friend_unadj_samp2, res_friend_bin_unadj_samp2,
