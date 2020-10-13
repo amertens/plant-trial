@@ -1,21 +1,5 @@
 
 
-
-# DV Vote= Voting
-# DV anti share= Organizing Anti Wolf
-# DV organize for= Organizing Pro Wolf
-# DV organize anti= Sharing Anti Wolf Info
-# DV pro share= Sharing Pro Wolf Info
- 
-# wolf.impact= Impact of Wolves
-# descrip.local (NO FIGURE)
-# descrip.global= Descriptive Norms
-# 14 injunctive friend= Injunctive Norms (friends)
-# injunctive family= Injunctive Norms (family)
-# competence= Perceived Competence
-# likability= Perceived Likability
-# similarwolveshuma= Wolf Similarity to People
-
 rm(list=ls())
 library(tidyverse)
 library(cowplot)

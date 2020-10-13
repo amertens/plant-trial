@@ -14,6 +14,10 @@ d <- read.csv(here("data/AllSampleReducedVarsMASTER.csv"))
 d$condition[d$condition=="norm"] <- "norms"
 d$condition <- factor(d$condition, levels=c("control","norms","efficacy","combined"))
 
+d$yard.sign.requests <- ifelse(d$yard.sign.requests=="",0,1)
+table(d$yard.sign.requests)
+table(d$condition, d$yard.sign.requests)
+
 #simple tabulation of primary outcomes by num_condition and sample
 table(d$condition, d$selftimesused)
 table(d$condition, d$friendtimesused)

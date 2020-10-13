@@ -34,11 +34,10 @@ plant.glm <- function(Yname, Ws=Wvars, data=d, family="gaussian"){
                     se=res_list$sigma,
                     Zval=res_list$tstat)
   res$p <- 2*pnorm(-abs(res$Zval))
-  res$corrected.p<- res$p*5
-  res$corrected.p<-ifelse(res$corrected.p > 1, 1, res$corrected.p)
-  
+  res$corrected.p  <- p.adjust(res$p, method = "BH")
+
   if(family=="binomial"){
-    res$RR = exp(res$est) 
+    res$OR = exp(res$est) 
   }
   
   contrasts<-data.frame(str_split(rownames(res), " - ", n = 2, simplify = T))
@@ -55,7 +54,7 @@ plant.glm <- function(Yname, Ws=Wvars, data=d, family="gaussian"){
 
 
 #Run ordered logistic regression
-polr_format<- function(Yvar, Ws=Wvars, df=d){
+polr_format<- function(Yvar, Ws=Wvars, df=d, ref){
   if(is.null(Ws)){
     Wsub <- NULL
   }else{
@@ -84,10 +83,11 @@ polr_format<- function(Yvar, Ws=Wvars, df=d){
   res <- data.frame(res)
   
   #correct P-values
-  res$corrected.p<- res$p*5
-  
+  res$corrected.p  <- p.adjust(res$p, method = "BH")
+  res$ref <- ref
+
   #Return just the treatment effects and outcome estimates
-  ressub <-  res[c(1:5, (nrow(res) - (NYlevels-3)):nrow(res)),]
+  ressub <-  res[c(1:(length(levels(df$tr))-1)),]
   ressub <- data.frame(coef=rownames(ressub), ressub)
   rownames(ressub) <- NULL
   
@@ -179,8 +179,8 @@ glm_mod_format<- function(d=d,Yvar, Wvars=Wvars, family="gaussian", control="con
       int.p <- lrtest(res2$fit, res1$fit)$`Pr(>Chisq)`[2]
       res <- res1$res
       res <- res %>% 
-        rename(subgroup=term,RR=estimate, se.est=std.error, RR.lb=conf.low, RR.ub=conf.high, P=p) %>%
-        subset(., select = c(subgroup, RR, RR.lb, RR.ub, se.est, P)) 
+        rename(subgroup=term,OR=estimate, se.est=std.error, OR.lb=conf.low, OR.ub=conf.high, P=p) %>%
+        subset(., select = c(subgroup, OR, OR.lb, OR.ub, se.est, P)) 
       
       res$control <- control
       res$treatment <- i
@@ -198,8 +198,8 @@ glm_mod_format<- function(d=d,Yvar, Wvars=Wvars, family="gaussian", control="con
       if(colnames(res)[2]=="OR"){
         
         res <- res %>% 
-          rename(RR=OR, RR.lb =X2.5., RR.ub =X97.5., se.est=Std..Error, Zvalue=z.value, P=Pr...z..) %>%
-          subset(., select = c(subgroup, RR, RR.lb, RR.ub, se.est, Zvalue, P))  
+          rename(OR=OR, OR.lb =X2.5., OR.ub =X97.5., se.est=Std..Error, Zvalue=z.value, P=Pr...z..) %>%
+          subset(., select = c(subgroup, OR, OR.lb, OR.ub, se.est, Zvalue, P))  
       }else{
         
         res <- res %>% 
@@ -209,9 +209,9 @@ glm_mod_format<- function(d=d,Yvar, Wvars=Wvars, family="gaussian", control="con
       
       if(family=="binomial"){
         res <- data.frame(subgroup = res$subgroup,
-                          RR = exp(res$est),
-                          RR.lb = exp(res$est - 1.96 * res$se.est),
-                          RR.ub = exp(res$est + 1.96 * res$se.est),
+                          OR = exp(res$est),
+                          OR.lb = exp(res$est - 1.96 * res$se.est),
+                          OR.ub = exp(res$est + 1.96 * res$se.est),
                           est=res$est,
                           se.est=res$se.est,
                           P=res$P)
