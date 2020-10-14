@@ -30,7 +30,11 @@ res_friend_unadj <- bind_rows(res_friend_unadj_vC, res_friend_unadj_vN, res_frie
 res_friend_unadj$corrected.p <- p.adjust(res_friend_unadj$corrected.p, method = "BH")
 
 #sensitivity analysis, binary outcome of any friend usage
-res_friend_bin_unadj <- plant.glm(Yname=Y[3], Ws=NULL, data=d, family="binomial")
+res_yard_sign_unadj <- plant.glm(Yname=Y[3], Ws=NULL, data=d, family="binomial")
+
+#sign usage
+res_self_unadj <- plant.glm(Yname="yard.sign.requests", Ws=NULL, data=d, family="binomial")
+
  
 
 save(Y, res_self_unadj, res_friend_unadj, res_friend_bin_unadj, 

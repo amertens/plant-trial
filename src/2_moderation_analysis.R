@@ -110,7 +110,7 @@ for(i in Vvars){
   res1<-glm_mod_format(d=d,Yvar=Y[1], Wvars="W", family="binomial", V=i)
   res1_sub1<-glm_mod_format(d=d,Yvar=Y[1], Wvars="W", family="binomial", V=i,  control="norms", contrasts=c("efficacy", "combined"))
   res1_sub2<-glm_mod_format(d=d,Yvar=Y[1], Wvars="W", family="binomial", V=i,  control="efficacy", contrasts=c("combined"))
- 
+  
   if(!(i %in% c("IN_praise_plant","IN_encourage"))){
     res2<-glm_mod_format(d=d,Yvar=Y[2], Wvars="W", family="polr", V=i) #must update for polr
     res2_sub1<-glm_mod_format(d=d,Yvar=Y[2], Wvars="W", family="polr", V=i,  control="norms", contrasts=c("efficacy", "combined")) #must update for polr
@@ -124,6 +124,19 @@ for(i in Vvars){
 }
 
 res_unadj <- resfull_unadj %>% distinct( control, treatment, outcome, V, int.p)
+
+#FDR correction
+correctp = function(d){
+  d$corrected.p <- p.adjust(d$int.p, method = "BH")
+  return(d)
+}
+
+res_unadj <- res_unadj %>% group_by(outcome,V) %>%
+  do(as.data.frame(correctp(.))) 
+
+
+
+
 
 save(Y, res_unadj,
      resfull_unadj, 

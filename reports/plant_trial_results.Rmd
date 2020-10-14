@@ -155,7 +155,8 @@ print_fun(res_friend_bin_adj_samp1, binomial=T)
   load(here("results/unadjusted_moderation_analysis_results.rdata"))
 
 res_unadj$int.p <- round(res_unadj$int.p,2)
-pander(res_unadj)
+res_unadj$corrected.p <- round(res_unadj$corrected.p,2)
+knitr::kable(res_unadj)
 
 ```
 

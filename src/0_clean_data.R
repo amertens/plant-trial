@@ -47,7 +47,7 @@ d <- d %>%
   mutate(friendused=1*(friendtimesused>0),
          friendused=ifelse(is.na(friendtimesused),NA, friendused),
          friendtimesused=factor(friendtimesused, levels=c("0","1","2","3"))) %>%
-  subset(., select=c(id, sample, tr, selftimesused, friendtimesused, friendused,
+  subset(., select=c(id, sample, tr, selftimesused, friendtimesused, friendused, yard.sign.requests,
          SE_plant, RE_env_plant, RE_social_plant,
          IN_sanctioning_plant, dyn_plant, SE_encourage,       
          IN_praise_plant,     RE_social_encourage,
