@@ -1,0 +1,27 @@
+---
+title: "table1"
+author: "Andrew Mertens"
+date: "10/24/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+
+```{r, echo=F, warning=F}
+library(here)
+library(tidyverse)
+library(table1)
+
+load(here("data/analysis_dataset.Rdata"))
+
+d <- d %>% filter(sample==1)
+
+Wvars=c("rent_own", "Gender", "Race", "Ethnicity", "Age", "Education", "native_plant", "convinceOther")
+
+table1(~ rent_own+ Gender+ Race+ Ethnicity+ Age+ Education+ native_plant+ convinceOther | tr, data=d)
+
+```
