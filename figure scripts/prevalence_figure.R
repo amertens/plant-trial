@@ -13,10 +13,11 @@ BinomCI(sum(d$selftimesused), nrow(d))
 
 res1 <- d %>% group_by(tr) %>%
   do(as.data.frame(BinomCI(sum(.$selftimesused), nrow(.)))) %>%
-  mutate(Outcome="Used voucher")
+  mutate(Outcome="Self voucher used")
 res2 <- d %>% group_by(tr) %>%
   do(as.data.frame(BinomCI(sum(.$friendused), nrow(.)))) %>%
-  mutate(Outcome="Friend used voucher")
+  mutate(Outcome="Friend-and-neighbor voucher used")
+
 
 res <- bind_rows(res1, res2)
 res$est <- res$est * 100

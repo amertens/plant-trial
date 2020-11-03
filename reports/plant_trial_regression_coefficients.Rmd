@@ -1,0 +1,53 @@
+---
+title: "plant trial regression coefficients"
+author: "Andrew Mertens"
+date: "11/2/2020"
+output:
+  word_document: default
+  html_document: default
+---
+
+```{r setup, include=FALSE}
+
+
+rm(list=ls())
+library(tidyverse)
+library(caret)
+library(washb)
+library(multcomp)
+library(here)
+
+source(here("plant_trial_functions.R"))
+
+
+load(here("data/analysis_dataset.Rdata"))
+
+#Subgroup analyses
+df1 <- d %>% filter(sample==1)
+
+
+Wdf <- df1 %>% subset(., select=Wvars)
+
+
+```
+
+## Outcome: Personal voucher use
+
+```{r, echo=F}
+
+
+res_self_adj_samp1 <- plant.glm(Yname=Y[1], Ws=Wdf, data=df1, family="binomial")
+
+
+```
+
+
+## Outcome: Any friend voucher use
+
+```{r, echo=F}
+
+
+res_friend_bin_adj_samp1 <- plant.glm(Yname=Y[3], Ws=Wdf, data=df1, family="binomial")
+
+
+```

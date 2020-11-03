@@ -12,7 +12,7 @@ plant.glm <- function(Yname, Ws=Wvars, data=d, family="gaussian"){
   data <- data.frame(y=as.numeric(Yvar[,1]), tr=data$tr)
   #prescreen covariates
   if(!is.null(Ws)){
-    prescreened_varnames<-washb_prescreen(Y=data[,1], Ws, family=family, print=F, pval = 0.2)
+    prescreened_varnames<-washb_prescreen(Y=data[,1], Ws, family=family, print=T, pval = 0.2)
     Ws <- Ws %>% subset(., select = prescreened_varnames)
     data <- cbind(data, Ws)
   }
@@ -24,6 +24,7 @@ plant.glm <- function(Yname, Ws=Wvars, data=d, family="gaussian"){
   
   #fit model
   m1=glm(formula(y~tr + .), data=data, family=family)
+  print(summary(m1))
   
   #Get contrasts for all treatment arms
   l1 <- glht(m1, linfct = mcp(tr = "Tukey"))

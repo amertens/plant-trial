@@ -112,20 +112,20 @@ for(i in Wvars){
 Wdf <- df1 %>% subset(., select=Wvars)
 
 res_self_adj_samp1 <- plant.glm(Yname=Y[1], Ws=Wdf, data=df1, family="binomial")
-res_friend_adj_samp1_vC <- polr_format(Yvar=Y[2], Ws=NULL, df=df1, ref="control")$res
-res_friend_adj_samp1_vN <- polr_format(Yvar=Y[2], Ws=NULL, 
-                                         df=df1 %>% filter(tr!="control") %>% 
-                                           droplevels(.), ref="norms")$res
-res_friend_adj_samp1_vE <- polr_format(Yvar=Y[2], Ws=NULL, 
-                                         df=df1 %>% filter(tr!="control" & tr!="norms") %>% 
-                                           droplevels(.), ref="efficacy")$res
-res_friend_adj_samp1 <- bind_rows(res_friend_adj_samp1_vC, res_friend_adj_samp1_vN, res_friend_adj_samp1_vE)
-res_friend_adj_samp1$corrected.p <- p.adjust(res_friend_adj_samp1$corrected.p, method = "BH")
+# res_friend_adj_samp1_vC <- polr_format(Yvar=Y[2], Ws=Wdf, df=df1, ref="control")$res
+# res_friend_adj_samp1_vN <- polr_format(Yvar=Y[2], Ws=Wdf, 
+#                                          df=df1 %>% filter(tr!="control") %>% 
+#                                            droplevels(.), ref="norms")$res
+# res_friend_adj_samp1_vE <- polr_format(Yvar=Y[2], Ws=Wdf, 
+#                                          df=df1 %>% filter(tr!="control" & tr!="norms") %>% 
+#                                            droplevels(.), ref="efficacy")$res
+# res_friend_adj_samp1 <- bind_rows(res_friend_adj_samp1_vC, res_friend_adj_samp1_vN, res_friend_adj_samp1_vE)
+# res_friend_adj_samp1$corrected.p <- p.adjust(res_friend_adj_samp1$corrected.p, method = "BH")
 
 res_friend_bin_adj_samp1 <- plant.glm(Yname=Y[3], Ws=Wdf, data=df1, family="binomial")
 
 
 
  
-save(Y, res_self_adj_samp1, res_friend_adj_samp1, res_friend_bin_adj_samp1,
+save(Y, res_self_adj_samp1, res_friend_bin_adj_samp1,
      file=here("results/adjusted_regression_results_subsample.rdata"))
