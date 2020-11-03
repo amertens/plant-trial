@@ -51,3 +51,11 @@ res_friend_bin_adj_samp1 <- plant.glm(Yname=Y[3], Ws=Wdf, data=df1, family="bino
 
 
 ```
+
+## Odds ratios
+
+Gender: `r exp(-0.720403)`
+Age: `r exp(0.014550)`
+convinceOther: `r exp(-0.710448)`
+
+

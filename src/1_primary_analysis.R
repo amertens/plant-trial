@@ -104,6 +104,8 @@ save(Y, res_self_unadj_samp1, res_friend_unadj_samp1, res_friend_bin_unadj_samp1
 #Subgroup analyses
 df1 <- d %>% filter(sample==1)
 
+table(df1$selftimesused, df1$convinceOther)
+
 for(i in Wvars){
   cat(i, ":\n")
   print(table(is.na(df1[[i]])))

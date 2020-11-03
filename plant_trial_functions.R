@@ -26,6 +26,8 @@ plant.glm <- function(Yname, Ws=Wvars, data=d, family="gaussian"){
   m1=glm(formula(y~tr + .), data=data, family=family)
   print(summary(m1))
   
+  
+  
   #Get contrasts for all treatment arms
   l1 <- glht(m1, linfct = mcp(tr = "Tukey"))
   summary(l1)
