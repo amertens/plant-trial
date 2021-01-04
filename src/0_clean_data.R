@@ -70,3 +70,7 @@ Y <- c("selftimesused", "friendtimesused","friendused")
 
 #Save cleaned analysis data
 save(d, Y, Wvars, file=here("data/analysis_dataset.Rdata"))
+write.csv(d, file=here("data/analysis_dataset.csv"))
+
+
+

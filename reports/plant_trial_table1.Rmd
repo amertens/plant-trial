@@ -2,7 +2,10 @@
 title: "table1"
 author: "Andrew Mertens"
 date: "10/24/2020"
-output: html_document
+output:
+  html_document: default
+  pdf_document: default
+  word_document: default
 ---
 
 ```{r setup, include=FALSE}
@@ -18,10 +21,29 @@ library(table1)
 
 load(here("data/analysis_dataset.Rdata"))
 
-d <- d %>% filter(sample==1)
+df <- d %>% filter(sample==1)
 
 Wvars=c("rent_own", "Gender", "Race", "Ethnicity", "Age", "Education", "native_plant", "convinceOther")
 
-table1(~ rent_own+ Gender+ Race+ Ethnicity+ Age+ Education+ native_plant+ convinceOther | tr, data=d)
+table1(~ rent_own+ Gender+ Race+ Ethnicity+ Age+ Education+ native_plant+ convinceOther | tr, data=df)
+
+```
+
+
+## check if mean covariates differ between samples 1 or 2 for individuals with selftimesused =1
+```{r, echo=F, warning=F}
+df <- d %>% filter(selftimesused==1)
+
+table1(~ rent_own+ Gender+ Race+ Ethnicity+ Age+ Education+ native_plant+ convinceOther | sample, data=df)
+
+```
+
+
+## check if mean covariates differ between samples 1 or 2 for individuals with friendused =1
+
+```{r, echo=F, warning=F}
+df <- d %>% filter(friendtimesused==1)
+
+table1(~ rent_own+ Gender+ Race+ Ethnicity+ Age+ Education+ native_plant+ convinceOther | sample, data=df)
 
 ```
