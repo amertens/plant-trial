@@ -74,3 +74,48 @@ write.csv(d, file=here("data/analysis_dataset.csv"))
 
 
 
+#Desc stats
+df <- d %>% filter(sample==1)
+round(prop.table(table(df$Gender))*100,2)
+round(prop.table(table(df$Race))*100,2)
+round(prop.table(table(df$Ethnicity))*100,2)
+summary(df$Age)
+round(prop.table(table(df$rent_own))*100,2)
+round(prop.table(table(df$Education))*100,2)
+39.08 + 47.13
+
+round(prop.table(table(df$native_plant))*100,2)
+round(prop.table(table(df$convinceOther))*100,2)
+
+#Desc stats
+df <- d %>% filter(sample==2)
+round(prop.table(table(df$Gender))*100,1)
+round(prop.table(table(df$Race))*100,1)
+round(prop.table(table(df$Ethnicity))*100,2)
+summary(df$Age)
+round(prop.table(table(df$Education))*100,2)
+round(prop.table(table(df$rent_own))*100,2)
+
+round(prop.table(table(df$native_plant))*100,2)
+round(prop.table(table(df$convinceOther))*100,2)
+
+
+#% bachelor's degree or higher (education 4 or 5) for sample 1?
+prop.table(table(df$Education))
+
+# % of those who selftimesused=1 with native_plant=1 for sample 1 and 2
+df <- d %>% filter(native_plant==1)
+prop.table(table(df$selftimesused==1, df$sample),2)*100
+
+
+# % of those who friendused=1 with convinceOther=1 for sample 1 and 2
+df <- d %>% filter(convinceOther==1)
+prop.table(table(df$friendused==1, df$sample),2)*100
+
+
+
+
+#voucher usage
+table(d$selftimesused)
+table(d$friendtimesused)
+84 +  2*22  + 3*10

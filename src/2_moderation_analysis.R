@@ -135,7 +135,35 @@ res_unadj <- res_unadj %>% group_by(outcome,V) %>%
   do(as.data.frame(correctp(.))) 
 
 
+res_unadj %>% filter(corrected.p < 0.1)
+resfull_unadj %>% filter(V=="competent_encourage", control=="control", treatment=="efficacy", outcome=="friendused") %>% mutate(logOR=log(OR))
 
+69.2963556 * 2.0426191 * 0.3577289
+69.2963556 * 2.0426191^5  * 0.3577289^5
+
+exp(4.2383923 + 0.7142328 + -1.0279799)
+exp(4.2383923 + 0.7142328*5 + -1.0279799*5)
+
+
+# Further, when predicting whether a self-voucher was used, we found an interaction effect between the efficacy 
+# and control and the combined and control messages and residents' prior perceptions of injunctive norms related to 
+# native plant gardening (efficacy vs control interaction uncorrected p-value= .030, FDR corrected p-value=.09; 
+# combined vs control interaction uncorrected p-value= .020, FDR corrected p-value=.09). Specifically, the efficacy 
+# and combined messages were more effective than control messages at encouraging self-voucher usage among those who 
+# had higher prior perceptions of injunctive norms (i.e., believed that others would support their efforts to plant 
+# native plants). Among those with lower prior perceptions of positive injunctive norms, the control messages were 
+# more effective. 
+
+resfull_unadj %>% filter(V=="IN_praise_plant", control=="control", treatment=="efficacy", outcome=="selftimesused") %>% mutate(logOR=log(OR))
+exp(-2.2802661 + -0.1212333 + 0.4658809)
+exp(-2.2802661 + -0.1212333*7 + 0.4658809*7)
+
+resfull_unadj %>% filter(V=="IN_praise_plant", control=="control", treatment=="combined", outcome=="selftimesused") %>% mutate(logOR=log(OR))
+exp(-2.4084764 + -0.1212333 + 0.4819964)
+exp(-2.4084764 + -0.1212333*7 + 0.4819964*7)
+
+
+exp(-2.4084764 + -0.1212333*7 + 0.4819964*7)
 
 
 save(Y, res_unadj,
