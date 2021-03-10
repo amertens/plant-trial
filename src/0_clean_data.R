@@ -117,5 +117,16 @@ prop.table(table(df$friendused==1, df$sample),2)*100
 
 #voucher usage
 table(d$selftimesused)
+table(d$selftimesused, d$sample)
+
 table(d$friendtimesused)
 84 +  2*22  + 3*10
+
+round(prop.table(table(d$selftimesused, d$sample), 1)*100,2)
+table(d$friendtimesused, d$sample)
+
+
+#
+df <- d %>% filter(native_plant==2)
+round(prop.table(table(df$selftimesused, df$sample), 2)*100,2)
+

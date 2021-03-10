@@ -4,6 +4,7 @@ rm(list=ls())
 library(tidyverse)
 library(cowplot)
 library(DescTools)
+library(here)
 tableau10 <- c("#1F77B4", "#FF7F0E", "#2CA02C", "#D62728", "#9467BD", "#8C564B", "#E377C2", "#7F7F7F", "#BCBD22", "#17BECF")
 theme_set(theme_bw())
 
@@ -33,7 +34,7 @@ p <- ggplot(res, aes(x=tr, y=est)) +
   geom_linerange(aes(ymin=lwr.ci, ymax=upr.ci),
                  alpha=0.5, color="black", size = 1) +
   facet_wrap(~Outcome, scales="fixed") +
-  labs(y ="Proportion used" , x = "Intervention message") +
+  labs(y ="Percent used" , x = "Intervention message") +
   scale_colour_manual(values=rep("black",4)) + 
   scale_shape_manual(values=c(19,17,18,15)) +
   ggtitle("") + theme_bw() +
